@@ -41,10 +41,75 @@ namespace Nintek.NeuralNetworks.Core
 
                 foreach (var neuron in layer.Neurons)
                 {
-                    var sum = neuron.Inputs.Sum(synapse => synapse.Input.Value * synapse.Weight);
-                    neuron.Value = ActivationFunction.Evaluate(sum);
+                    neuron.Sum = neuron.Inputs.Sum(synapse => synapse.Input.Value * synapse.Weight);
+                    neuron.Value = ActivationFunction.Evaluate(neuron.Sum);
                 }
             }
+        }
+
+        public void PropagateBackward(double target)
+        {
+            var reversedLayers = ((IEnumerable<Layer>) Layers).Reverse().ToArray();
+            Layer previousLayer = null;
+            foreach (var layer in reversedLayers)
+            {
+                if (layer == reversedLayers.First())
+                {
+                    foreach (var neuron in layer.Neurons)
+                    {
+                        var marginOfError = target - neuron.Value;
+                        var delta = ActivationFunction.Derivative(neuron.Sum) * marginOfError;
+
+                        foreach (var synapse in neuron.Inputs)
+                        {
+                            synapse.OldWeight = synapse.Weight;
+                            var deltaWeight = delta / synapse.Input.Value;
+                            synapse.Weight = synapse.Weight + deltaWeight;
+                        }
+                    }
+                }
+                else if (layer == reversedLayers.Last())
+                {
+                    break;
+                }
+                else // hidden layer
+                {
+                    foreach (var neuron in layer.Neurons)
+                    {
+                        var marginOfError = target - neuron.Value;
+                        var delta = ActivationFunction.Derivative(neuron.Sum) * marginOfError;
+
+                        List<double> deltaWeights = null;
+
+                        foreach (var outputSynapse in neuron.Outputs)
+                        {
+                            var deltaHidden = delta / outputSynapse.OldWeight * ActivationFunction.Derivative(neuron.Sum);
+                            var inputs = neuron.Inputs.Select(s => s.Input.Value).ToArray();
+                            deltaWeights = Divide(deltaHidden, inputs);
+                        }
+
+                        for (int i = 0; i < neuron.Inputs.Count; i++)
+                        {
+                            var inputSynapse = neuron.Inputs[i];
+                            var deltaWeight = deltaWeights[i];
+                            inputSynapse.OldWeight = inputSynapse.Weight;
+                            inputSynapse.Weight = inputSynapse.Weight + deltaWeight;
+                        }
+                    }
+                }
+
+                previousLayer = layer;
+            }
+        }
+
+        List<double> Divide(double value, IEnumerable<double> values)
+        {
+            var result = new List<double>();
+            foreach (var x in values)
+            {
+                result.Add(value / x);
+            }
+            return result;
         }
     }
 }

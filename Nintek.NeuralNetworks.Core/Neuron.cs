@@ -9,6 +9,7 @@ namespace Nintek.NeuralNetworks.Core
     public class Neuron
     {
         public double Value { get; set; }
+        public double Sum { get; set; }
         public List<Synapse> Inputs { get; set; }
         public List<Synapse> Outputs { get; set; }
 

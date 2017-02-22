@@ -79,6 +79,16 @@ namespace Nintek.NeuralNetworks.Samples
             var network = CreateTestNetwork();
 
             network.PropagateForward();
+
+            int i = 0;
+            while (i++ < 1000000)
+            {
+                Console.Clear();
+                network.PropagateForward();
+                network.PropagateBackward(0);
+                var output = network.Layers.Last().Neurons.First().Value;
+                Console.WriteLine($"iteration: {i}\noutput: {output}");
+            }
         }
     }
 }

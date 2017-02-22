@@ -13,5 +13,11 @@ namespace Nintek.NeuralNetworks.Core
             var inverted = 1 + Math.Pow(Math.E, -input);
             return 1 / inverted;
         }
+
+        public double Derivative(double input)
+        {
+            var evaluatedValue = Evaluate(input);
+            return evaluatedValue * (1 - evaluatedValue);
+        }
     }
 }

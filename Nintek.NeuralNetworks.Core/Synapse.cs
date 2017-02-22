@@ -9,6 +9,7 @@ namespace Nintek.NeuralNetworks.Core
     public class Synapse
     {
         public double Weight { get; set; }
+        public double OldWeight { get; set; }
         public Neuron Input { get; set; }
         public Neuron Output { get; set; }
     }

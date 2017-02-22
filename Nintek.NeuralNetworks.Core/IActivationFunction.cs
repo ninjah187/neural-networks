@@ -9,5 +9,6 @@ namespace Nintek.NeuralNetworks.Core
     public interface IActivationFunction
     {
         double Evaluate(double input);
+        double Derivative(double input);
     }
 }
