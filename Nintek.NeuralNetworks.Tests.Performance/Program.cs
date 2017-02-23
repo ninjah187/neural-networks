@@ -3,27 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using Nintek.NeuralNetworks.Core;
 
-namespace Nintek.NeuralNetworks.Samples
+namespace Nintek.NeuralNetworks.Tests.Performance
 {
     class Program
     {
         static void Main(string[] args)
         {
             var network = CreateTestNetwork();
-
-            network.PropagateForward();
-
             int i = 0;
-            while (i++ < 100000000)
+            int iterations = 10000000;
+            var stopwatch = Stopwatch.StartNew();
+            double output = 0;
+            while (i++ < iterations)
             {
-                Console.Clear();
                 network.PropagateForward();
                 network.PropagateBackward(0);
-                var output = network.Layers.Last().Neurons.First().Value;
-                Console.WriteLine($"iteration: {i}\noutput: {output}");
+                output = network.Layers.Last().Neurons.First().Value;
             }
+            stopwatch.Stop();
+            Console.WriteLine($"{iterations} in {stopwatch.Elapsed}, network output: {output}");
         }
 
         static NeuralNetwork CreateTestNetwork()
