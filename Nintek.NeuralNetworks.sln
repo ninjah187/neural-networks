@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nintek.NeuralNetworks.Core"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nintek.NeuralNetworks.Samples", "Nintek.NeuralNetworks.Samples\Nintek.NeuralNetworks.Samples.csproj", "{20F184AC-1E76-4E82-9CAD-78E90767B3DE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nintek.NeuralNetworks.Samples.Wpf.CopyImage", "Nintek.NeuralNetworks.Samples.Wpf.CopyImage\Nintek.NeuralNetworks.Samples.Wpf.CopyImage.csproj", "{233CF7DC-D23F-405B-9C9E-F8B10F0AB6F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{20F184AC-1E76-4E82-9CAD-78E90767B3DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20F184AC-1E76-4E82-9CAD-78E90767B3DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{20F184AC-1E76-4E82-9CAD-78E90767B3DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{233CF7DC-D23F-405B-9C9E-F8B10F0AB6F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{233CF7DC-D23F-405B-9C9E-F8B10F0AB6F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{233CF7DC-D23F-405B-9C9E-F8B10F0AB6F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{233CF7DC-D23F-405B-9C9E-F8B10F0AB6F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

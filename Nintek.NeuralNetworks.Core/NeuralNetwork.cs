@@ -16,7 +16,7 @@ namespace Nintek.NeuralNetworks.Core
             Layers = layers;
             ActivationFunction = activationFunction;
 
-            //ConnectLayers();
+            ConnectLayers();
         }
 
         void ConnectLayers()
@@ -28,6 +28,21 @@ namespace Nintek.NeuralNetworks.Core
 
                 layer.Attach(nextLayer);
             }
+        }
+
+        public List<double> Evaluate(List<double> inputs)
+        {
+            var inputLayer = Layers.First();
+
+            for (int i = 0; i < inputs.Count; i++)
+            {
+                inputLayer.Neurons[i].Value = inputs[i];
+            }
+
+            PropagateForward();
+
+            var outputs = Layers.Last().Neurons.Select(n => n.Value).ToList();
+            return outputs;
         }
 
         public void PropagateForward()
@@ -89,6 +104,67 @@ namespace Nintek.NeuralNetworks.Core
                         }
 
                         for (int i = 0; i < neuron.Inputs.Count; i++)
+                        {
+                            var inputSynapse = neuron.Inputs[i];
+                            var deltaWeight = deltaWeights[i];
+                            inputSynapse.OldWeight = inputSynapse.Weight;
+                            inputSynapse.Weight = inputSynapse.Weight + deltaWeight;
+                        }
+                    }
+                }
+
+                previousLayer = layer;
+            }
+        }
+
+        public void PropagateBackward(List<double> expected)
+        {
+            var reversedLayers = ((IEnumerable<Layer>)Layers).Reverse().ToArray();
+            Layer previousLayer = null;
+            foreach (var layer in reversedLayers)
+            {
+                if (layer == reversedLayers.First())
+                {
+                    for (int i = 0; i < layer.Neurons.Count; i++)
+                    {
+                        var neuron = layer.Neurons[i];
+                        var expectedNeuronValue = expected[i];
+
+                        var marginOfError = expectedNeuronValue - neuron.Value;
+                        var deltaSum = ActivationFunction.Derivative(neuron.Sum) * marginOfError;
+
+                        foreach (var synapse in neuron.Inputs)
+                        {
+                            synapse.OldWeight = synapse.Weight;
+                            var deltaWeight = deltaSum / synapse.Input.Value;
+                            synapse.Weight = synapse.Weight + deltaWeight;
+                        }
+                    }
+                }
+                else if (layer == reversedLayers.Last())
+                {
+                    break;
+                }
+                else // hidden layer
+                {
+                    for (int i = 0; i < layer.Neurons.Count; i++)
+                    {
+                        var neuron = layer.Neurons[i];
+                        var expectedNeuronValue = expected[i];
+
+                        var marginOfError = expectedNeuronValue - neuron.Value;
+                        var delta = ActivationFunction.Derivative(neuron.Sum) * marginOfError;
+
+                        List<double> deltaWeights = null;
+
+                        foreach (var outputSynapse in neuron.Outputs)
+                        {
+                            var deltaHidden = delta / outputSynapse.OldWeight * ActivationFunction.Derivative(neuron.Sum);
+                            var inputs = neuron.Inputs.Select(s => s.Input.Value).ToArray();
+                            deltaWeights = Divide(deltaHidden, inputs);
+                        }
+
+                        for (int j = 0; j < neuron.Inputs.Count; j++)
                         {
                             var inputSynapse = neuron.Inputs[i];
                             var deltaWeight = deltaWeights[i];

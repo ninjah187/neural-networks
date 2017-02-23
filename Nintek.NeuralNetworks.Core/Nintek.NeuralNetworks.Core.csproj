@@ -40,12 +40,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Builder\IAddLayer.cs" />
+    <Compile Include="Builder\INeuralNetworkBuilderApi.cs" />
+    <Compile Include="Builder\IAddInputLayer.cs" />
     <Compile Include="IActivationFunction.cs" />
     <Compile Include="ILayer.cs" />
     <Compile Include="INeuron.cs" />
     <Compile Include="ISummator.cs" />
     <Compile Include="Layer.cs" />
     <Compile Include="NeuralNetwork.cs" />
+    <Compile Include="NeuralNetworkBuilder.cs" />
     <Compile Include="Neuron.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SigmoidFunction.cs" />
