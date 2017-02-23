@@ -11,16 +11,21 @@ namespace Nintek.NeuralNetworks.Samples
     {
         static void Main(string[] args)
         {
+            SingleOutput();
+            
+        }
+
+        static void SingleOutput()
+        {
             var network = CreateTestNetwork();
 
-            network.PropagateForward();
-
             int i = 0;
-            while (i++ < 100000000)
+            while (i++ < 1000000)
             {
                 Console.Clear();
-                network.PropagateForward();
-                network.PropagateBackward(0);
+                //network.PropagateForward();
+                network.Evaluate(new List<double> { 1, 1 });
+                network.PropagateBackward(new List<double> { 0 });
                 var output = network.Layers.Last().Neurons.First().Value;
                 Console.WriteLine($"iteration: {i}\noutput: {output}");
             }

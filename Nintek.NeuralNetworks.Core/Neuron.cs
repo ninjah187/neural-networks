@@ -10,6 +10,7 @@ namespace Nintek.NeuralNetworks.Core
     {
         public double Value { get; set; }
         public double Sum { get; set; }
+        public double Delta { get; set; }
         public List<Synapse> Inputs { get; set; }
         public List<Synapse> Outputs { get; set; }
 
@@ -24,5 +25,8 @@ namespace Nintek.NeuralNetworks.Core
         {
             Value = value;
         }
+
+        public override string ToString()
+            => $"{{ value: {Value}, sum: {Sum}, delta: {Delta} }}";
     }
 }

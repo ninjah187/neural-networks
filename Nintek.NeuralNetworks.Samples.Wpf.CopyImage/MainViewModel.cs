@@ -7,12 +7,16 @@ using System.Windows.Media.Imaging;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Drawing;
+using System.Windows;
+using System.Diagnostics;
 using Nintek.NeuralNetworks.Core;
 
 namespace Nintek.NeuralNetworks.Samples.Wpf.CopyImage
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+        static readonly Random Random = new Random();
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public BitmapSource SourceImage
@@ -57,20 +61,20 @@ namespace Nintek.NeuralNetworks.Samples.Wpf.CopyImage
             {
                 new Layer
                 {
-                    Neurons = new List<Neuron> { new Neuron(), new Neuron(), new Neuron() }
+                    Neurons = new List<Neuron> { new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()) }
                 },
                 new Layer
                 {
-                    Neurons = new List<Neuron> { new Neuron(), new Neuron(), new Neuron(), new Neuron() }
+                    Neurons = new List<Neuron> { new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()) }
                 },
                 new Layer
                 {
-                    Neurons = new List<Neuron> { new Neuron(), new Neuron(), new Neuron(), new Neuron(),
-                                                 new Neuron(), new Neuron(), new Neuron(), new Neuron() }
+                    Neurons = new List<Neuron> { new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()),
+                                                 new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()) }
                 },
                 new Layer
                 {
-                    Neurons = new List<Neuron> { new Neuron(), new Neuron(), new Neuron() }
+                    Neurons = new List<Neuron> { new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()), new Neuron(Random.NextDouble()) }
                 }
             }, new SigmoidFunction());
             
@@ -80,28 +84,39 @@ namespace Nintek.NeuralNetworks.Samples.Wpf.CopyImage
 
         public async Task RunAsync()
         {
-            var refreshFrequency = 100;
-            var refreshCounter = 0;
-
-            await Task.Run(() =>
+            try
             {
-                while (true)
+                await Task.Run(() =>
                 {
-                    if (refreshCounter == 1)
+                    var i = 0;
+                    double totalIterationMs = 0;
+                    while (true)
                     {
-                        NeuralNetworkImage = _neuralNetworkBitmap.ToBitmapSource();
+                        var stopwatch = Stopwatch.StartNew();
+
+                        CopyImageAndLearn();
+
+                        Application.Current.Dispatcher.Invoke(new Action(() =>
+                        {
+                            NeuralNetworkImage = _neuralNetworkBitmap.ToBitmapSource();
+                        }));
+
+                        stopwatch.Stop();
+                        i++;
+                        totalIterationMs += stopwatch.ElapsedMilliseconds;
+                        var averageIterationTime = TimeSpan.FromMilliseconds(totalIterationMs / i);
+
+                        Console.WriteLine("----------");
+                        Console.WriteLine($"iterations: {i}");
+                        Console.WriteLine($"last iteration time: {stopwatch.Elapsed}");
+                        Console.WriteLine($"average iteration time: {averageIterationTime}");
                     }
-
-                    if (refreshCounter == refreshFrequency)
-                    {
-                        refreshCounter = 0;
-                    }
-
-                    CopyImageAndLearn();
-
-                    refreshCounter++;
-                }
-            });
+                });
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc);
+            }
         }
 
         void CopyImageAndLearn()
@@ -113,17 +128,24 @@ namespace Nintek.NeuralNetworks.Samples.Wpf.CopyImage
                     var sourcePixel = _sourceBitmap.GetPixel(x, y);
                     var inputs = new List<double>
                     {
-                        ConvertRange(0, 255, 0, 1, sourcePixel.R),
-                        ConvertRange(0, 255, 0, 1, sourcePixel.G),
-                        ConvertRange(0, 255, 0, 1, sourcePixel.B)
+                        ConvertRange(0, 255, 0.0001, 1, sourcePixel.R),
+                        ConvertRange(0, 255, 0.0001, 1, sourcePixel.G),
+                        ConvertRange(0, 255, 0.0001, 1, sourcePixel.B)
                     };
 
-                    var outputs = _network.Evaluate(inputs).Select(o => ConvertRange(0, 1, 0, 255, o)).ToArray();
+                    var outputsRaw = _network.Evaluate(inputs);
+                    var outputs = outputsRaw.Select(o => ConvertRange(0, 1, 0, 255, o)).ToArray();
+                    //var outputs = _network.Evaluate(inputs).Select(o => ConvertRange(0, 1, 0, 255, o)).ToArray();
+
+                    if (outputs.Contains(double.NaN))
+                    {
+
+                    }
 
                     var outputColor = Color.FromArgb(sourcePixel.A, (int)outputs[0], (int)outputs[1], (int)outputs[2]);
                     _neuralNetworkBitmap.SetPixel(x, y, outputColor);
 
-                    _network.PropagateBackward(inputs);
+                    _network.PropagateBackward(new List<double> { sourcePixel.R, sourcePixel.G, sourcePixel.B });
                 }
             }
         }
