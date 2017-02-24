@@ -14,20 +14,8 @@ using Nintek.NeuralNetworks.Core.Builder;
 
 namespace Nintek.NeuralNetworks.Samples.Wpf.CopyImage
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class SingleNetworkViewModel : INotifyPropertyChanged
     {
-        struct Point
-        {
-            public int X { get; set; }
-            public int Y { get; set; }
-
-            public Point(int x, int y)
-            {
-                X = x;
-                Y = y;
-            }
-        }
-
         static readonly Random Random = new Random();
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -63,11 +51,9 @@ namespace Nintek.NeuralNetworks.Samples.Wpf.CopyImage
         Bitmap _sourceBitmap;
         Bitmap _neuralNetworkBitmap;
 
-        //NeuralNetwork _network;
+        NeuralNetwork _network;
 
-        Dictionary<Point, NeuralNetwork> _networks;
-
-        public MainViewModel()
+        public SingleNetworkViewModel()
         {
             _sourceBitmap = new Bitmap("C:/sample.jpg");
             _neuralNetworkBitmap = new Bitmap(_sourceBitmap.Width, _sourceBitmap.Height);
@@ -79,26 +65,15 @@ namespace Nintek.NeuralNetworks.Samples.Wpf.CopyImage
             //    .AddOutputLayer(3)
             //    .Build();
 
-            _networks = new Dictionary<Point, NeuralNetwork>();
-
-            for (int y = 0; y < _sourceBitmap.Height; y++)
-            {
-                var network = new NeuralNetworkBuilder()
-                    .AddInputLayer(3)
-                    .AddHiddenLayer(3)
-                    .AddHiddenLayer(4)
-                    .AddOutputLayer(3)
-                    .Build();
-
-                for (int x = 0; x < _sourceBitmap.Width; x++)
-                {
-
-                    _networks.Add(new Point(x, y), network);
-                }
-            }
+            _network = new NeuralNetworkBuilder()
+                .AddInputLayer(3)
+                .AddHiddenLayer(4)
+                .AddHiddenLayer(4)
+                .AddOutputLayer(3)
+                .Build();
 
             SourceImage = _sourceBitmap.ToBitmapSource();
-            NeuralNetworkImage = _neuralNetworkBitmap.ToBitmapSource();
+            //NeuralNetworkImage = _neuralNetworkBitmap.ToBitmapSource();
         }
 
         public async Task RunAsync()
@@ -115,10 +90,10 @@ namespace Nintek.NeuralNetworks.Samples.Wpf.CopyImage
 
                         CopyImageAndLearn();
 
-                        Application.Current.Dispatcher.Invoke(new Action(() =>
-                        {
-                            NeuralNetworkImage = _neuralNetworkBitmap.ToBitmapSource();
-                        }));
+                        //Application.Current.Dispatcher.Invoke(new Action(() =>
+                        //{
+                        //    NeuralNetworkImage = _neuralNetworkBitmap.ToBitmapSource();
+                        //}));
 
                         stopwatch.Stop();
                         i++;
@@ -138,41 +113,23 @@ namespace Nintek.NeuralNetworks.Samples.Wpf.CopyImage
             }
         }
 
-        //void CopyImageAndLearn()
-        //{
-        //    for (int y = 0; y < _sourceBitmap.Height; y++)
-        //    {
-        //        for (int x = 0; x < _sourceBitmap.Width; x++)
-        //        {
-        //            var sourcePixel = _sourceBitmap.GetPixel(x, y);
-        //            var inputs = new List<double>
-        //            {
-        //                ConvertRange(0, 255, 0.0001, 1, sourcePixel.R),
-        //                ConvertRange(0, 255, 0.0001, 1, sourcePixel.G),
-        //                ConvertRange(0, 255, 0.0001, 1, sourcePixel.B)
-        //            };
-
-        //            var outputsRaw = _network.Evaluate(inputs);
-        //            var outputs = outputsRaw.Select(o => ConvertRange(0, 1, 0, 255, o)).ToArray();
-        //            //var outputs = _network.Evaluate(inputs).Select(o => ConvertRange(0, 1, 0, 255, o)).ToArray();
-
-        //            if (outputs.Contains(double.NaN))
-        //            {
-
-        //            }
-
-        //            var outputColor = Color.FromArgb(sourcePixel.A, (int)outputs[0], (int)outputs[1], (int)outputs[2]);
-        //            _neuralNetworkBitmap.SetPixel(x, y, outputColor);
-
-        //            _network.PropagateBackward(new List<double> { sourcePixel.R, sourcePixel.G, sourcePixel.B });
-        //        }
-        //    }
-        //}
-
         void CopyImageAndLearn()
         {
+            var bitmap = (Bitmap) _neuralNetworkBitmap.Clone();
+
+            var lineColors = new List<Color>();
+
             for (int y = 0; y < _sourceBitmap.Height; y++)
             {
+                if (y != 0)
+                {
+                    for (int x = 0; x < _sourceBitmap.Width; x++)
+                    {
+                        bitmap.SetPixel(x, y - 1, lineColors[x]);
+                    }
+                    lineColors = new List<Color>();
+                }
+
                 for (int x = 0; x < _sourceBitmap.Width; x++)
                 {
                     var sourcePixel = _sourceBitmap.GetPixel(x, y);
@@ -183,23 +140,28 @@ namespace Nintek.NeuralNetworks.Samples.Wpf.CopyImage
                         ConvertRange(0, 255, 0.0001, 1, sourcePixel.B)
                     };
 
-                    var network = _networks[new Point(x, y)];
-
-                    var outputsRaw = network.Evaluate(inputs);
+                    var outputsRaw = _network.Evaluate(inputs);
                     var outputs = outputsRaw.Select(o => ConvertRange(0, 1, 0, 255, o)).ToArray();
                     //var outputs = _network.Evaluate(inputs).Select(o => ConvertRange(0, 1, 0, 255, o)).ToArray();
 
-                    if (outputs.Contains(double.NaN))
-                    {
-
-                    }
-
                     var outputColor = Color.FromArgb(sourcePixel.A, (int)outputs[0], (int)outputs[1], (int)outputs[2]);
-                    _neuralNetworkBitmap.SetPixel(x, y, outputColor);
+                    lineColors.Add(outputColor);
+                    //_neuralNetworkBitmap.SetPixel(x, y, outputColor);
+                    bitmap.SetPixel(x, y, Color.Yellow);
 
-                    network.PropagateBackward(inputs);
+                    _network.PropagateBackward(inputs);
                 }
+
+                Application.Current.Dispatcher.Invoke(new Action(() =>
+                {
+                    NeuralNetworkImage = bitmap.ToBitmapSource();
+                }));
             }
+
+            var oldBitmap = _neuralNetworkBitmap;
+            _neuralNetworkBitmap = bitmap;
+
+            oldBitmap.Dispose();
         }
 
         public static double ConvertRange(
@@ -210,7 +172,7 @@ namespace Nintek.NeuralNetworks.Samples.Wpf.CopyImage
             double scale = (double)(newEnd - newStart) / (originalEnd - originalStart);
             return (newStart + ((value - originalStart) * scale));
         }
-        
+
         void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

@@ -24,7 +24,8 @@ namespace Nintek.NeuralNetworks.Samples.Wpf.CopyImage
         {
             InitializeComponent();
 
-            var viewModel = new MainViewModel();
+            //var viewModel = new MainViewModel();
+            var viewModel = new SingleNetworkViewModel();
 
             DataContext = viewModel;
 

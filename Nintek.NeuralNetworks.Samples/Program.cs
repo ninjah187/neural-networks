@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Nintek.NeuralNetworks.Core;
+using Nintek.NeuralNetworks.Core.Builder;
 
 namespace Nintek.NeuralNetworks.Samples
 {
@@ -11,8 +12,8 @@ namespace Nintek.NeuralNetworks.Samples
     {
         static void Main(string[] args)
         {
-            SingleOutput();
-            
+            //SingleOutput();
+            TripleOutput();
         }
 
         static void SingleOutput()
@@ -28,6 +29,51 @@ namespace Nintek.NeuralNetworks.Samples
                 network.PropagateBackward(new List<double> { 0 });
                 var output = network.Layers.Last().Neurons.First().Value;
                 Console.WriteLine($"iteration: {i}\noutput: {output}");
+            }
+        }
+
+        static void TripleOutput()
+        {
+            var network = new NeuralNetworkBuilder()
+                .AddInputLayer(3)
+                .AddHiddenLayer(3)
+                .AddHiddenLayer(4)
+                .AddOutputLayer(3)
+                .Build();
+
+            int i = 0;
+            while (i++ < 1000000)
+            {
+                Console.Clear();
+                //network.PropagateForward();
+                network.Evaluate(new List<double> { 1, 1, 1 });
+                network.PropagateBackward(new List<double> { 0, 0, 0 });
+                var output = network.Layers.Last().Neurons[0].Value;
+                var output2 = network.Layers.Last().Neurons[1].Value;
+                var output3 = network.Layers.Last().Neurons[2].Value;
+                Console.WriteLine($"iteration: {i}\noutput:\n{output}\n{output2}\n{output3}");
+            }
+        }
+
+        static void DoubleOutput()
+        {
+            var network = new NeuralNetworkBuilder()
+                .AddInputLayer(2)
+                .AddHiddenLayer(3)
+                .AddHiddenLayer(4)
+                .AddOutputLayer(2)
+                .Build();
+
+            int i = 0;
+            while (i++ < 1000000)
+            {
+                Console.Clear();
+                //network.PropagateForward();
+                network.Evaluate(new List<double> { 1, 1 });
+                network.PropagateBackward(new List<double> { 0, 0 });
+                var output = network.Layers.Last().Neurons[0].Value;
+                var output2 = network.Layers.Last().Neurons[1].Value;
+                Console.WriteLine($"iteration: {i}\noutput:\n{output}\n{output2}");
             }
         }
 

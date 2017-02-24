@@ -13,6 +13,11 @@ namespace Nintek.NeuralNetworks.Core
 
         public List<Neuron> Neurons { get; set; }
 
+        public Layer()
+        {
+            Neurons = new List<Neuron>();
+        }
+
         public void Attach(Layer attachedLayer)
         {
             foreach (var neuron in Neurons)
